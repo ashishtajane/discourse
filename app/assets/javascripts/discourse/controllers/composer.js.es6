@@ -585,14 +585,6 @@ export default Ember.Controller.extend({
     $('.d-editor-input').autocomplete({ cancel: true });
   },
 
-  showOptions() {
-    var _ref;
-    return (_ref = this.get('controllers.modal')) ? _ref.show(Discourse.ArchetypeOptionsModalView.create({
-      archetype: this.get('model.archetype'),
-      metaData: this.get('model.metaData')
-    })) : void 0;
-  },
-
   canEdit: function() {
     return this.get("model.action") === "edit" && Discourse.User.current().get("can_edit");
   }.property("model.action"),

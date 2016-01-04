@@ -4,21 +4,6 @@ import PostsWithPlaceholders from 'discourse/lib/posts-with-placeholders';
 import { default as computed } from 'ember-addons/ember-computed-decorators';
 import { loadTopicView } from 'discourse/models/topic';
 
-function calcDayDiff(p1, p2) {
-  if (!p1) { return; }
-
-  const date = p1.get('created_at');
-  if (date && p2) {
-    const lastDate = p2.get('created_at');
-    if (lastDate) {
-      const delta = new Date(date).getTime() - new Date(lastDate).getTime();
-      const days = Math.round(delta / (1000 * 60 * 60 * 24));
-
-      p1.set('daysSincePrevious', days);
-    }
-  }
-}
-
 export default RestModel.extend({
   _identityMap: null,
   posts: null,
@@ -414,7 +399,6 @@ export default RestModel.extend({
     const stored = this.storePost(post);
     if (stored) {
       const posts = this.get('posts');
-      calcDayDiff(posts.get('firstObject'), stored);
       posts.unshiftObject(stored);
     }
 
@@ -426,7 +410,6 @@ export default RestModel.extend({
     if (stored) {
       const posts = this.get('posts');
 
-      calcDayDiff(stored, this.get('lastAppended'));
       if (!posts.contains(stored)) {
         if (!this.get('loadingBelow')) {
           this.get('postsWithPlaceholders').appendPost(() => posts.pushObject(stored));
@@ -558,17 +541,6 @@ export default RestModel.extend({
       const store = this.store;
       Discourse.ajax(url).then(p => this.storePost(store.createRecord('post', p)));
     }
-  },
-
-  // Returns the "thread" of posts in the history of a post.
-  findReplyHistory(post) {
-    const url = `/posts/${post.get('id')}/reply-history.json?max_replies=${Discourse.SiteSettings.max_reply_history}`;
-    const store = this.store;
-    return Discourse.ajax(url).then(result => {
-      return result.map(p => this.storePost(store.createRecord('post', p)));
-    }).then(replyHistory => {
-      post.set('replyHistory', replyHistory);
-    });
   },
 
   /**
